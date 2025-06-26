@@ -6,6 +6,8 @@ import pandas as pd
 import logging
 
 from src.data.ingestion.api_gobierno import APIGobierno
+from src.cleaning.cleaner import limpiar_dataframe
+
 
 # Configuración
 RAW_DATA_DIR = 'data/raw/'
@@ -99,6 +101,10 @@ def main():
 
         if df_nuevo is not None and not df_nuevo.empty:
             logging.info(f"Datos nuevos obtenidos: {len(df_nuevo)} registros.")
+
+            # Limpiar el DataFrame antes de cualquier operación
+            df_nuevo = limpiar_dataframe(df_nuevo)
+
             df_master = cargar_master()
             actualizar_master(df_nuevo, df_master)  # Ya guarda internamente si es necesario
 
