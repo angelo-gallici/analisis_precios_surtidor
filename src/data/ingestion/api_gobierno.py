@@ -100,32 +100,26 @@ class APIGobierno:
 
     def get_gas_prices_dataframe(self):
         """
-        Load the complete dataset as a DataFrame with all columns,
-        without filtering or type constraints.
+        Always download the latest dataset and load it as a DataFrame.
         """
         file = FileName("tmp-datasource.csv")
 
-        # Look for local cache
-        if not file.exists():
-            logging.info(
-                "Fetching dataset, as it did not exist locally as %s.",
-                file.full_name
-            )
-            download = self.get_gas_prices_resource_file(file.full_name)
-            if not download:
-                logging.error(
-                    "Could not download Dataset to %s.", file.full_name
-                )
-                return None
+        # 🔁 Siempre descarga el dataset más reciente
+        logging.info("Descargando dataset más reciente desde la API...")
+        download = self.get_gas_prices_resource_file(file.full_name)
+        if not download:
+            logging.error("No se pudo descargar el dataset.")
+            return None
 
         try:
-            df = read_csv(file.full_name)  # Carga completa sin restricciones
-            logging.debug("Read full dataframe: \n%s", df.info())
+            df = read_csv(file.full_name)
+            logging.debug("Dataframe leído: \n%s", df.info())
         except ValueError as exc:
-            logging.error("Failed to parse data into DataFrame: %s", exc)
+            logging.error("Error al leer el archivo CSV: %s", exc)
             return None
 
         return df
+
 
 
 

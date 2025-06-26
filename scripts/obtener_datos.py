@@ -27,30 +27,62 @@ def cargar_master() -> pd.DataFrame:
     else:
         return pd.DataFrame()
 
-def actualizar_master(df_nuevo: pd.DataFrame, df_master: pd.DataFrame):
-    """Agrega registros nuevos al archivo maestro sin duplicar datos."""
+def actualizar_master(df_nuevo: pd.DataFrame, df_master: pd.DataFrame) -> pd.DataFrame:
+    """Actualiza el archivo maestro agregando solo datos posteriores a la última fecha del maestro y no mayores a hoy."""
+
     df_nuevo = df_nuevo.copy()
-    df_master = df_master.copy()
+    df_nuevo['fecha_vigencia'] = pd.to_datetime(df_nuevo['fecha_vigencia'], errors='coerce')
+    df_nuevo = df_nuevo.dropna(subset=['fecha_vigencia'])
 
-    # Asegura que 'fecha_vigencia' esté en formato datetime
-    df_nuevo['fecha_vigencia'] = pd.to_datetime(df_nuevo['fecha_vigencia'], dayfirst=True, errors='coerce')
-    if not df_master.empty:
-        df_master['fecha_vigencia'] = pd.to_datetime(df_master['fecha_vigencia'], dayfirst=True, errors='coerce')
+    fecha_hoy = pd.Timestamp.now().normalize()
 
-    # Concatenar y eliminar duplicados por claves importantes
+    # Eliminar filas con fecha_vigencia mayor a hoy (solo fecha)
+    df_nuevo = df_nuevo[df_nuevo['fecha_vigencia'].dt.normalize() <= fecha_hoy]
+
+    if df_master is not None and not df_master.empty and 'fecha_vigencia' in df_master.columns:
+        df_master['fecha_vigencia'] = pd.to_datetime(df_master['fecha_vigencia'], errors='coerce')
+        df_master = df_master.dropna(subset=['fecha_vigencia'])
+        fecha_max_master = df_master['fecha_vigencia'].max()
+
+        # Filtrar nuevos datos solo con fecha posterior a la última del maestro y menor o igual a hoy
+        df_nuevo = df_nuevo[df_nuevo['fecha_vigencia'] > fecha_max_master]
+
+    else:
+        # Si no hay maestro o está vacío, se toma todo df_nuevo ya filtrado por fecha hoy
+        df_master = pd.DataFrame()
+
+    if df_nuevo.empty:
+        logging.info("No hay datos nuevos para agregar al archivo maestro.")
+        return df_master
+
     df_total = pd.concat([df_master, df_nuevo], ignore_index=True)
-    df_total.drop_duplicates(
-        subset=['cuit', 'fecha_vigencia', 'idproducto', 'tipohorario', 'precio'], inplace=True
-    )
-
-    # Ordenar por fecha
     df_total.sort_values(by='fecha_vigencia', inplace=True)
 
-    # Guardar archivo actualizado
     df_total.to_csv(MASTER_FILE, index=False)
     logging.info(f"Archivo maestro actualizado con {len(df_total)} registros.")
 
+    fecha_min = df_total['fecha_vigencia'].min()
+    fecha_max = df_total['fecha_vigencia'].max()
+    print(f"\nFecha vigencia más antigua: {fecha_min}")
+    print(f"Fecha vigencia más reciente: {fecha_max}")
+
     return df_total
+
+
+def mostrar_resumen_desde_archivo():
+    """Carga el archivo maestro y muestra fechas y cantidad de registros."""
+    if os.path.exists(MASTER_FILE):
+        df = pd.read_csv(MASTER_FILE)
+        df['fecha_vigencia'] = pd.to_datetime(df['fecha_vigencia'], errors='coerce')
+        fecha_min = df['fecha_vigencia'].min()
+        fecha_max = df['fecha_vigencia'].max()
+        print("\nResumen del archivo maestro actualizado:")
+        print(f"Fecha vigencia más antigua: {fecha_min}")
+        print(f"Fecha vigencia más reciente: {fecha_max}")
+        print(f"Total de registros: {len(df)}")
+    else:
+        print("No se encontró el archivo maestro.")
+
 
 def main():
     logging.info("Iniciando proceso de actualización de precios de combustibles...")
@@ -68,20 +100,18 @@ def main():
         if df_nuevo is not None and not df_nuevo.empty:
             logging.info(f"Datos nuevos obtenidos: {len(df_nuevo)} registros.")
             df_master = cargar_master()
-            df_actualizado = actualizar_master(df_nuevo, df_master)
+            actualizar_master(df_nuevo, df_master)  # Ya guarda internamente si es necesario
 
-            # Mostrar resumen fechas
-            fecha_min = df_actualizado['fecha_vigencia'].min()
-            fecha_max = df_actualizado['fecha_vigencia'].max()
-            print("\nResumen del archivo maestro actualizado:")
-            print(f"Fecha vigencia más antigua: {fecha_min}")
-            print(f"Fecha vigencia más reciente: {fecha_max}")
+            # Mostrar resumen directamente desde el archivo guardado
+            mostrar_resumen_desde_archivo()
 
         else:
             logging.warning("No se recibieron datos nuevos desde la API.")
+            mostrar_resumen_desde_archivo()  # Mostrar igual lo que ya hay
 
     except Exception as e:
         logging.error(f"Error inesperado: {e}", exc_info=True)
+
 
 if __name__ == "__main__":
     main()
