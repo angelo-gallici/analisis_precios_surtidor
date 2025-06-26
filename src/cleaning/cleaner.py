@@ -21,7 +21,7 @@ def limpiar_dataframe(df: pd.DataFrame) -> pd.DataFrame:
     # Eliminar columnas innecesarias
     columnas_a_eliminar = [
         "indice_tiempo", "idempresa", "cuit", "empresa", "direccion",
-        "region", "idtipohorario", "tipohorario", "latitud", "longitud"
+        "region", "idtipohorario", "tipohorario","geojson"
     ]
     df.drop(columns=[col for col in columnas_a_eliminar if col in df.columns], inplace=True)
 

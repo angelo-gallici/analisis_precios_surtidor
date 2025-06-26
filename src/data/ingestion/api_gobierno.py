@@ -102,7 +102,7 @@ class APIGobierno:
         """
         Always download the latest dataset and load it as a DataFrame.
         """
-        file = FileName("tmp-datasource.csv")
+        file = FileName("tmp_datasource.csv")
 
         # Siempre descarga el dataset más reciente
         logging.info("Descargando dataset más reciente desde la API...")

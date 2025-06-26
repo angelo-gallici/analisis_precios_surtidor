@@ -7,6 +7,7 @@ import logging
 
 from src.data.ingestion.api_gobierno import APIGobierno
 from src.cleaning.cleaner import limpiar_dataframe
+from src.cleaning.limpieza_avanzada import limpieza_profunda
 
 
 # Configuración
@@ -104,6 +105,18 @@ def main():
 
             # Limpiar el DataFrame antes de cualquier operación
             df_nuevo = limpiar_dataframe(df_nuevo)
+
+            # Limpieza avanzada (ubicación y outliers)
+            df_nuevo = limpieza_profunda(df_nuevo)
+            """
+            # Chequeo de conflictos de ubicación sin modificar el DataFrame
+            conflictos = encontrar_conflictos_de_ubicacion(df_nuevo)
+            if not conflictos.empty:
+                print("\nConflictos detectados: múltiples empresas comparten la misma ubicación (lat/lon):")
+                print(conflictos.head())
+            else:
+                print("No se detectaron conflictos de ubicación.")
+            """
 
             df_master = cargar_master()
             actualizar_master(df_nuevo, df_master)  # Ya guarda internamente si es necesario
