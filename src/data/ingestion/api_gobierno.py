@@ -104,7 +104,7 @@ class APIGobierno:
         """
         file = FileName("tmp-datasource.csv")
 
-        # 🔁 Siempre descarga el dataset más reciente
+        # Siempre descarga el dataset más reciente
         logging.info("Descargando dataset más reciente desde la API...")
         download = self.get_gas_prices_resource_file(file.full_name)
         if not download:
@@ -120,17 +120,3 @@ class APIGobierno:
 
         return df
 
-
-
-
-def get_gas_price_avg(df: DataFrame, id: int, location: str):
-    """
-    Calculate average for a gas type with a fixed region.
-    """
-    logging.debug("Using filters: %s, %s.", id, location)
-    id_column = "idproducto"
-    location_column = "localidad"
-    price_column = "precio"
-    df = df.query(f"{location_column} == @location & {id_column} == @id")
-    price = percentile(df[price_column], 65)
-    return price
