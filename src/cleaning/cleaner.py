@@ -2,6 +2,16 @@ import pandas as pd
 import unicodedata
 import re
 
+def limpiar_direccion(texto):
+    if pd.isna(texto):
+        return ""
+    texto = str(texto)
+    texto = texto.replace(",", " ")         # Evita que arruine el CSV
+    texto = texto.replace("\n", " ").replace("\r", " ")  # Evita líneas rotas
+    texto = re.sub(r"\s+", " ", texto)      # Normaliza espacios
+    return texto.strip()
+
+
 def normalize_text(text):
     if pd.isna(text):
         return ""
@@ -18,9 +28,13 @@ def simplify_word(text):
 def limpiar_dataframe(df: pd.DataFrame) -> pd.DataFrame:
     df = df.copy()
 
+    if "direccion" in df.columns:
+        df["direccion"] = df["direccion"].apply(limpiar_direccion)
+
+
     # Eliminar columnas innecesarias
     columnas_a_eliminar = [
-        "indice_tiempo", "idempresa", "cuit", "empresa", "direccion",
+        "indice_tiempo", "idempresa", "cuit", "empresa",
         "region", "idtipohorario", "tipohorario","geojson"
     ]
     df.drop(columns=[col for col in columnas_a_eliminar if col in df.columns], inplace=True)

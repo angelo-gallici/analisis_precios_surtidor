@@ -18,17 +18,7 @@ def filtrar_outliers_precio_por_producto(df: pd.DataFrame, stds: float = 3.0) ->
         df_limpio = pd.concat([df_limpio, filtrado])
     print(f"➤ Outliers por precio: {antes - len(df_limpio)} registros eliminados como valores atípicos.")
     return df_limpio
-"""
-def encontrar_conflictos_de_ubicacion(df: pd.DataFrame) -> pd.DataFrame:
-    conflictos = (
-        df.groupby(["latitud", "longitud"])
-        .agg({"empresabandera": "nunique"})
-        .query("empresabandera > 1")
-        .reset_index()
-    )
-    print(f"➤ Conflictos de ubicación: {len(conflictos)} coordenadas con más de una empresa.")
-    return conflictos
-"""
+
 def limpieza_profunda(df: pd.DataFrame) -> pd.DataFrame:
     print("\n--- Limpieza avanzada ---")
     df = limpiar_geolocalizaciones_fuera_de_argentina(df)

@@ -12,13 +12,20 @@ from src.cleaning.limpieza_avanzada import limpieza_profunda
 
 # Configuración
 RAW_DATA_DIR = 'data/raw/'
-MASTER_FILE = os.path.join(RAW_DATA_DIR, 'precios_combustibles_master.csv')
+PROCESSED_DATA_DIR = 'data/processed/'
+MASTER_FILE = os.path.join(PROCESSED_DATA_DIR, 'precios_combustibles_master.csv')
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 def ensure_directories():
     """Crea el directorio de datos si no existe."""
     os.makedirs(RAW_DATA_DIR, exist_ok=True)
+    os.makedirs(PROCESSED_DATA_DIR, exist_ok=True)
+
+def guardar_datos_crudos(df: pd.DataFrame):
+    raw_file = os.path.join(RAW_DATA_DIR, f'precios_combustibles_crudos.csv')
+    df.to_csv(raw_file, index=False)
+    logging.info(f"Datos crudos guardados en: {raw_file}")
 
 def cargar_master() -> pd.DataFrame:
     """Carga el archivo maestro si existe, o crea un DataFrame vacío."""
@@ -98,35 +105,25 @@ def main():
         return
 
     try:
-        df_nuevo = api.get_gas_prices_dataframe()
+        df_original = api.get_gas_prices_dataframe()
 
-        if df_nuevo is not None and not df_nuevo.empty:
-            logging.info(f"Datos nuevos obtenidos: {len(df_nuevo)} registros.")
+        if df_original is not None and not df_original.empty:
+            logging.info(f"Datos nuevos obtenidos: {len(df_original)} registros.")
 
-            # Limpiar el DataFrame antes de cualquier operación
-            df_nuevo = limpiar_dataframe(df_nuevo)
+            # Guardar versión cruda en RAW
+            guardar_datos_crudos(df_original)
 
-            # Limpieza avanzada (ubicación y outliers)
-            df_nuevo = limpieza_profunda(df_nuevo)
-            """
-            # Chequeo de conflictos de ubicación sin modificar el DataFrame
-            conflictos = encontrar_conflictos_de_ubicacion(df_nuevo)
-            if not conflictos.empty:
-                print("\nConflictos detectados: múltiples empresas comparten la misma ubicación (lat/lon):")
-                print(conflictos.head())
-            else:
-                print("No se detectaron conflictos de ubicación.")
-            """
+            # Procesamiento completo
+            df_original = limpiar_dataframe(df_original)
+            df_original = limpieza_profunda(df_original)
 
+            # Actualización y guardado en PROCESSED
             df_master = cargar_master()
-            actualizar_master(df_nuevo, df_master)  # Ya guarda internamente si es necesario
-
-            # Mostrar resumen directamente desde el archivo guardado
+            actualizar_master(df_original, df_master)
             mostrar_resumen_desde_archivo()
-
         else:
             logging.warning("No se recibieron datos nuevos desde la API.")
-            mostrar_resumen_desde_archivo()  # Mostrar igual lo que ya hay
+            mostrar_resumen_desde_archivo()
 
     except Exception as e:
         logging.error(f"Error inesperado: {e}", exc_info=True)
