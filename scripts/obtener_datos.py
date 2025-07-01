@@ -38,27 +38,25 @@ def cargar_master() -> pd.DataFrame:
         return pd.DataFrame()
 
 def actualizar_master(df_nuevo: pd.DataFrame, df_master: pd.DataFrame) -> pd.DataFrame:
-    """Actualiza el archivo maestro agregando solo datos posteriores a la última fecha del maestro y no mayores a hoy."""
-
     df_nuevo = df_nuevo.copy()
     df_nuevo['fecha_vigencia'] = pd.to_datetime(df_nuevo['fecha_vigencia'], errors='coerce')
     df_nuevo = df_nuevo.dropna(subset=['fecha_vigencia'])
 
-    fecha_hoy = pd.Timestamp.now().normalize()
-
-    # Eliminar filas con fecha_vigencia mayor a hoy (solo fecha)
-    df_nuevo = df_nuevo[df_nuevo['fecha_vigencia'].dt.normalize() <= fecha_hoy]
+    fecha_ahora = pd.Timestamp.now()
 
     if df_master is not None and not df_master.empty and 'fecha_vigencia' in df_master.columns:
         df_master['fecha_vigencia'] = pd.to_datetime(df_master['fecha_vigencia'], errors='coerce')
         df_master = df_master.dropna(subset=['fecha_vigencia'])
         fecha_max_master = df_master['fecha_vigencia'].max()
 
-        # Filtrar nuevos datos solo con fecha posterior a la última del maestro y menor o igual a hoy
-        df_nuevo = df_nuevo[df_nuevo['fecha_vigencia'] > fecha_max_master]
-
+        # ✔ Comparar con precisión total (incluyendo hora)
+        df_nuevo = df_nuevo[
+            (df_nuevo['fecha_vigencia'] > fecha_max_master) &
+            (df_nuevo['fecha_vigencia'] <= fecha_ahora)
+        ]
     else:
-        # Si no hay maestro o está vacío, se toma todo df_nuevo ya filtrado por fecha hoy
+        # No hay maestro: tomar todo lo que sea menor o igual a ahora
+        df_nuevo = df_nuevo[df_nuevo['fecha_vigencia'] <= fecha_ahora]
         df_master = pd.DataFrame()
 
     if df_nuevo.empty:
@@ -67,7 +65,6 @@ def actualizar_master(df_nuevo: pd.DataFrame, df_master: pd.DataFrame) -> pd.Dat
 
     df_total = pd.concat([df_master, df_nuevo], ignore_index=True)
     df_total.sort_values(by='fecha_vigencia', inplace=True)
-
     df_total.to_csv(MASTER_FILE, index=False)
     logging.info(f"Archivo maestro actualizado con {len(df_total)} registros.")
 
@@ -77,6 +74,7 @@ def actualizar_master(df_nuevo: pd.DataFrame, df_master: pd.DataFrame) -> pd.Dat
     print(f"Fecha vigencia más reciente: {fecha_max}")
 
     return df_total
+
 
 
 def mostrar_resumen_desde_archivo():
