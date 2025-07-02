@@ -28,14 +28,35 @@ def guardar_datos_crudos(df: pd.DataFrame):
     logging.info(f"Datos crudos guardados en: {raw_file}")
 
 def cargar_master() -> pd.DataFrame:
-    """Carga el archivo maestro si existe, o crea un DataFrame vacío."""
     if os.path.exists(MASTER_FILE):
-        df = pd.read_csv(MASTER_FILE, dtype=str)
-        # Asegurar que fecha_vigencia sea datetime
-        df['fecha_vigencia'] = pd.to_datetime(df['fecha_vigencia'], dayfirst=True, errors='coerce')
+        df = pd.read_csv(MASTER_FILE)
+        fechas_invalidas = df[~pd.to_datetime(df["fecha_vigencia"], errors="coerce").notna()]
+        print(f"Fechas unicas invalidas: {fechas_invalidas['fecha_vigencia'].unique()}\n")
+
+        # Forzar conversión segura a datetime para fecha_vigencia
+        df['fecha_vigencia'] = pd.to_datetime(df['fecha_vigencia'], errors='coerce', format='%Y-%m-%d %H:%M:%S')
+
+        # Opcional: eliminar filas con fechas inválidas (NaT)
+        nulos = df['fecha_vigencia'].isna().sum()
+        if nulos > 0:
+            print(f"\n⚠️ Advertencia: Se encontraron {nulos} fechas inválidas y se eliminarán.")
+            df = df.dropna(subset=['fecha_vigencia'])
+        
+        print("📄 Archivo master cargado.")
+        print(f"🔢 Registros cargados: {len(df)}")
+        print("🗓️ Rango de fechas en master:")
+        print("    ➤ Min:", df["fecha_vigencia"].min())
+        print("    ➤ Max:", df["fecha_vigencia"].max())
+        print("📋 Tipos de datos:")
+        print(df.dtypes)
         return df
     else:
+        print("📁 No se encontró el archivo maestro.")
         return pd.DataFrame()
+
+
+
+
 
 def actualizar_master(df_nuevo: pd.DataFrame, df_master: pd.DataFrame) -> pd.DataFrame:
     df_nuevo = df_nuevo.copy()
@@ -44,16 +65,23 @@ def actualizar_master(df_nuevo: pd.DataFrame, df_master: pd.DataFrame) -> pd.Dat
 
     fecha_ahora = pd.Timestamp.now()
 
+    print(f"\n📥 Mínima fecha en datos nuevos: {df_nuevo['fecha_vigencia'].min()}")
+    print(f"📥 Máxima fecha en datos nuevos: {df_nuevo['fecha_vigencia'].max()}")
+
     if df_master is not None and not df_master.empty and 'fecha_vigencia' in df_master.columns:
         df_master['fecha_vigencia'] = pd.to_datetime(df_master['fecha_vigencia'], errors='coerce')
         df_master = df_master.dropna(subset=['fecha_vigencia'])
+
+        print(f"\n📦 Registros en master antes de actualizar: {len(df_master)}")
+        print(f"🕓 Última fecha en master: {df_master['fecha_vigencia'].max()}")
+
         fecha_max_master = df_master['fecha_vigencia'].max()
 
-        # ✔ Comparar con precisión total (incluyendo hora)
         df_nuevo = df_nuevo[
             (df_nuevo['fecha_vigencia'] > fecha_max_master) &
             (df_nuevo['fecha_vigencia'] <= fecha_ahora)
         ]
+        print(f"➕ Registros nuevos que se van a agregar: {len(df_nuevo)}\n")
     else:
         # No hay maestro: tomar todo lo que sea menor o igual a ahora
         df_nuevo = df_nuevo[df_nuevo['fecha_vigencia'] <= fecha_ahora]
@@ -62,10 +90,11 @@ def actualizar_master(df_nuevo: pd.DataFrame, df_master: pd.DataFrame) -> pd.Dat
     if df_nuevo.empty:
         logging.info("No hay datos nuevos para agregar al archivo maestro.")
         return df_master
+    
 
     df_total = pd.concat([df_master, df_nuevo], ignore_index=True)
     df_total.sort_values(by='fecha_vigencia', inplace=True)
-    df_total.to_csv(MASTER_FILE, index=False)
+    df_total.to_csv(MASTER_FILE, index=False, date_format='%Y-%m-%d %H:%M:%S')
     logging.info(f"Archivo maestro actualizado con {len(df_total)} registros.")
 
     fecha_min = df_total['fecha_vigencia'].min()
