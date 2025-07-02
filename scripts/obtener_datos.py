@@ -87,13 +87,28 @@ def actualizar_master(df_nuevo: pd.DataFrame, df_master: pd.DataFrame) -> pd.Dat
         df_nuevo = df_nuevo[df_nuevo['fecha_vigencia'] <= fecha_ahora]
         df_master = pd.DataFrame()
 
+        # Eliminar duplicados exactos en los datos nuevos
+        original_len = len(df_nuevo)
+        df_nuevo.drop_duplicates(inplace=True)
+        print(f"🧹 Registros nuevos únicos luego de eliminar duplicados exactos: {len(df_nuevo)} (eliminados {original_len - len(df_nuevo)})")
+
+
     if df_nuevo.empty:
         logging.info("No hay datos nuevos para agregar al archivo maestro.")
         return df_master
     
 
     df_total = pd.concat([df_master, df_nuevo], ignore_index=True)
+
+    # 🔁 Eliminar filas completamente duplicadas (todas las columnas)
+    antes_dedup = len(df_total)
+    df_total.drop_duplicates(inplace=True)
+    despues_dedup = len(df_total)
+    print(f"🧹 Registros únicos tras eliminar duplicados exactos: {despues_dedup} (eliminados {antes_dedup - despues_dedup})")
+
+    # Ordenar cronológicamente
     df_total.sort_values(by='fecha_vigencia', inplace=True)
+
     df_total.to_csv(MASTER_FILE, index=False, date_format='%Y-%m-%d %H:%M:%S')
     logging.info(f"Archivo maestro actualizado con {len(df_total)} registros.")
 
