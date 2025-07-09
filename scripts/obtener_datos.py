@@ -8,6 +8,7 @@ import logging
 from src.data.ingestion.api_gobierno import APIGobierno
 from src.cleaning.cleaner import limpiar_dataframe
 from src.cleaning.limpieza_avanzada import limpieza_profunda
+from src.utils.geojson_exporter import exportar_geojson
 
 
 # Configuración
@@ -161,9 +162,22 @@ def main():
 
             # Actualización y guardado en PROCESSED
             df_master = cargar_master()
-            actualizar_master(df_original, df_master)
+            actualizado = actualizar_master(df_original, df_master)  # ← CORREGIDO
             mostrar_resumen_desde_archivo()
-        else:
+
+            combustibles_filtrados = [
+                'gnc',
+                'gas oil grado 2',
+                'nafta super entre 92 y 95 ron',
+                'nafta premium de mas de 95 ron',
+                'gas oil grado 3'
+            ]
+
+            df_geo = actualizado[actualizado['producto'].str.lower().isin([c.lower() for c in combustibles_filtrados])]
+            exportar_geojson(df_geo, 'mapa_combustibles/data/estaciones.geojson')
+            logging.info("📦 GeoJSON exportado correctamente con datos actualizados.")
+
+        else:           
             logging.warning("No se recibieron datos nuevos desde la API.")
             mostrar_resumen_desde_archivo()
 
