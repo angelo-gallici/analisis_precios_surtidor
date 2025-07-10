@@ -9,6 +9,7 @@ from src.data.ingestion.api_gobierno import APIGobierno
 from src.cleaning.cleaner import limpiar_dataframe
 from src.cleaning.limpieza_avanzada import limpieza_profunda
 from src.utils.geojson_exporter import exportar_geojson
+from datetime import datetime
 
 
 # Configuración
@@ -165,6 +166,16 @@ def main():
             actualizado = actualizar_master(df_original, df_master)  # ← CORREGIDO
             mostrar_resumen_desde_archivo()
 
+            # Filtrar registros del año actual
+            año_actual = datetime.now().year
+            actualizado['fecha_vigencia'] = pd.to_datetime(actualizado['fecha_vigencia'], errors='coerce')
+            actualizado = actualizado[actualizado['fecha_vigencia'].dt.year == año_actual]
+
+            # Quedarse con el precio más reciente por dirección + producto
+            df_geo = actualizado.sort_values("fecha_vigencia", ascending=False)
+            df_geo = df_geo.drop_duplicates(subset=["direccion", "producto"], keep="first")
+
+            # Filtro opcional por tipos de combustible
             combustibles_filtrados = [
                 'gnc',
                 'gas oil grado 2',
@@ -172,8 +183,9 @@ def main():
                 'nafta premium de mas de 95 ron',
                 'gas oil grado 3'
             ]
+            df_geo = df_geo[df_geo['producto'].str.lower().isin([c.lower() for c in combustibles_filtrados])]
 
-            df_geo = actualizado[actualizado['producto'].str.lower().isin([c.lower() for c in combustibles_filtrados])]
+            # Exportar GeoJSON
             exportar_geojson(df_geo, 'mapa_combustibles/data/estaciones.geojson')
             logging.info("📦 GeoJSON exportado correctamente con datos actualizados.")
 

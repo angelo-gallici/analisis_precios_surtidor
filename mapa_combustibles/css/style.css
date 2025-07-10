@@ -1,23 +1,61 @@
 body {
-  font-family: sans-serif;
   margin: 0;
-  padding: 0;
+  font-family: 'Segoe UI', sans-serif;
+  background-color: #f4f4f4;
+}
+
+#top-bar {
+  background-color: #ffffff;
+  padding: 10px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 
 h1 {
-  text-align: center;
-  margin: 10px 0;
+  margin: 0;
+  font-size: 1.5em;
+  color: #333;
 }
 
 #filtro {
-  display: block;
-  margin: 0 auto 10px auto;
-  padding: 5px;
   width: 90%;
-  max-width: 400px;
+  max-width: 500px;
+}
+
+.select2-container .select2-selection--multiple {
+  min-height: 40px;
+  border-radius: 6px;
 }
 
 #map {
   height: 90vh;
   width: 100%;
 }
+
+.filtro-grupo {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  margin: 10px;
+}
+
+.filtro-grupo label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: #f0f0f0;
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 14px;
+  cursor: pointer;
+  box-shadow: 0 0 2px #ccc;
+}
+
+.filtro-grupo input[type="checkbox"] {
+  cursor: pointer;
+}
+
