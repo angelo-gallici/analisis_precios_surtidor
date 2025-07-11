@@ -2,20 +2,32 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>🗺️ Mapa de Combustibles</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css" />
 </head>
 <body>
   <div id="top-bar">
     <h1>🛢️ Mapa de Precios de Combustibles</h1>
-    <div id="filtro-productos"></div>
+    <div id="filtro-productos" class="filtro-grupo"></div>
+  </div>
+
+  <div id="opciones">
+    <label for="radioSlider">📍 Radio de búsqueda (km):</label>
+    <input type="range" id="radioSlider" min="2" max="50" step="1" value="10" />
+    <span id="radioValor">10 km</span>
+    <button id="btnBuscar">Buscar mejor precio</button>
+    <button id="btnLimpiar">Limpiar filtro</button>
   </div>
 
   <div id="map"></div>
 
+  <!-- Scripts -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
+  <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.min.js"></script>
   <script src="js/script.js"></script>
 </body>
 </html>

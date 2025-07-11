@@ -59,3 +59,61 @@ h1 {
   cursor: pointer;
 }
 
+#opciones {
+  text-align: center;
+  margin: 10px 0;
+}
+
+#radioSlider {
+  width: 300px;
+  margin-top: 5px;
+}
+
+.best-station-icon {
+  border: 3px solid lime;
+  border-radius: 50%;
+}
+
+.leaflet-marker-icon.icono-mejor-precio {
+  border: 3px solid limegreen;
+  border-radius: 50%;
+  box-shadow: 0 0 12px 3px limegreen;
+  filter: brightness(1.2);
+}
+
+
+#btnBuscar {
+  background-color: #2e8b57;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+#btnBuscar:hover {
+  background-color: #246b46;
+}
+
+#btnLimpiar {
+  background-color: #f44336;
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  margin-left: 10px;
+  transition: background-color 0.3s ease;
+}
+
+#btnLimpiar:hover {
+  background-color: #d32f2f;
+}
+
+
+
+
+
