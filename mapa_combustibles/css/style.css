@@ -113,6 +113,15 @@ h1 {
   background-color: #d32f2f;
 }
 
+.agrupado-provincia div {
+  background: #007BFF !important;
+}
+
+.agrupado-municipio div {
+  background: orange !important;
+}
+
+
 
 
 
