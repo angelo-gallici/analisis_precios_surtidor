@@ -6,7 +6,6 @@ let circuloRadio = null;
 let rutaControl = null;
 let capaEstacionesFiltradas = null;
 
-
 // Diccionario de nombres bonitos
 const nombresBonitos = {
 	gnc: "GNC",
