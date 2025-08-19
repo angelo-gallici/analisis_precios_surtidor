@@ -1,0 +1,26 @@
+name: Ejecutar script diario
+
+on:
+  schedule:
+    - cron: "0 7 * * *" # 7 AM UTC (ajusta la hora si lo necesitas)
+  workflow_dispatch: # Permite correrlo manualmente desde la interfaz web
+
+jobs:
+  run-script:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Configurar Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.x"
+
+      - name: Instalar dependencias
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Ejecutar script
+        run: python scripts/obtener_datos.py
