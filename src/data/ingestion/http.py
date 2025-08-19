@@ -19,12 +19,16 @@ class HttpClient:
     class HttpMethod(Enum):
         """
         HTTP Verbs/Methods
+        CRUD mapping:
+        - GET -> Read
+        - POST -> Create
+        - PUT -> Update/Replace
+        - DELETE -> Delete
         """
-
-        PUT = "Create"
-        GET = "Read"
-        POST = "Update"
-        DELETE = "Delete"
+        GET = "GET"
+        POST = "POST"
+        PUT = "PUT"
+        DELETE = "DELETE"
 
     @staticmethod
     def http_request(

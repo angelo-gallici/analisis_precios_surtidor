@@ -6,6 +6,7 @@ import logging
 from dataclasses import dataclass
 from pandas import read_csv, DataFrame
 from numpy import percentile
+from requests.exceptions import RequestException
 
 from .dataset import DatasetResponse
 from .http import HttpClient
@@ -23,9 +24,9 @@ class APIGobierno:
     URL_PATHs = {"get_dataset": "action/package_show"}
     RESOURCE_NAME = "Precios vigentes en surtidor - Resolución 314/2016"
 
-    def datset_url(self):
+    def dataset_url(self):
         """
-        Get the predefined Dataset's URL
+        Get the predefined Dataset's URL.
         """
         url = (
             f"{self.API_URL}/{self.URL_PATHs['get_dataset']}"
@@ -35,12 +36,14 @@ class APIGobierno:
 
     def is_online(self):
         """
-        Verify wether the foreign API service is online
+        Verify whether the foreign API service is online.
+        Any request-related exception is interpreted as the
+        service being offline.
         """
         try:
             HttpClient.http_request(self.API_URL)
             is_online = True
-        except ConnectionError:
+        except RequestException:
             is_online = False
         return is_online
 
@@ -49,7 +52,7 @@ class APIGobierno:
         Challenge the foreign API to get metadata for the
         dataset.
         """
-        response = HttpClient.api_call(self.datset_url())
+        response = HttpClient.api_call(self.dataset_url())
         try:
             if isinstance(response, dict):
                 dataset = DatasetResponse(response)

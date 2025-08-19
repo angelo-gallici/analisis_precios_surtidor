@@ -102,10 +102,16 @@ function actualizarVista() {
 	if (seleccionados.length === 0) return;
 
 	const features = construirFeaturesFiltradas(seleccionados);
-	capaEstaciones = L.geoJSON(features, {
+	const geoJson = L.geoJSON(features, {
 		pointToLayer: (feature, latlng) => crearIcono(feature),
 		onEachFeature: crearPopup,
-	}).addTo(mapa);
+	});
+
+	capaEstaciones = L.markerClusterGroup({
+		disableClusteringAtZoom: 12,
+	});
+	capaEstaciones.addLayer(geoJson);
+	mapa.addLayer(capaEstaciones);
 }
 
 function obtenerSeleccionados() {
@@ -238,10 +244,16 @@ function buscarMejorEstacion() {
 	});
 
 	// Mostrar solo estaciones dentro del radio
-	capaEstacionesFiltradas = L.geoJSON(estaciones, {
+	const geoJsonFiltradas = L.geoJSON(estaciones, {
 		pointToLayer: (feature, latlng) => crearIcono(feature),
 		onEachFeature: crearPopup,
-	}).addTo(mapa);
+	});
+
+	capaEstacionesFiltradas = L.markerClusterGroup({
+		disableClusteringAtZoom: 12,
+	});
+	capaEstacionesFiltradas.addLayer(geoJsonFiltradas);
+	mapa.addLayer(capaEstacionesFiltradas);
 
 	if (mejorEstacion) {
 		const [lon, lat] = mejorEstacion.geometry.coordinates;
